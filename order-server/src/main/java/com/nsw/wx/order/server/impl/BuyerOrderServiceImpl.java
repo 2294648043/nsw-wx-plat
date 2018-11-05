@@ -10,13 +10,18 @@ import com.nsw.wx.order.enums.ResultEnum;
 import com.nsw.wx.order.exception.OrderException;
 import com.nsw.wx.order.mapper.WeCharOrdeDetailMapper;
 import com.nsw.wx.order.mapper.WeCharOrderMapper;
+import com.nsw.wx.order.message.*;
 import com.nsw.wx.order.pojo.WeCharOrdeDetail;
 import com.nsw.wx.order.pojo.WeCharOrder;
+import com.nsw.wx.order.redis.RedisLock;
+import com.nsw.wx.order.redis.RedisService;
+import com.nsw.wx.order.redis.WeChatProductOutputKey;
 import com.nsw.wx.order.server.BuyerOrderService;
 import com.nsw.wx.order.server.WebSocket;
 import com.nsw.wx.order.util.KeyUtil;
-import common.DecreaseStockInput;
-import common.WeChatProductOutput;
+import com.nsw.wx.order.common.DecreaseStockInput;
+import com.nsw.wx.order.common.WeChatProductOutput;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +30,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +44,12 @@ import java.util.stream.Collectors;
 @Service
 public class BuyerOrderServiceImpl implements BuyerOrderService {
     @Autowired
+    private  RabbitOrderSender rabbitOrderSender;
+    @Autowired
+    private OrderSender orderSender;
+    @Autowired
+    RedisService redisService;
+    @Autowired
     private WebSocket webSocket;
     @Autowired
     private WeCharOrdeDetailMapper weCharOrdeDetailMapper;
@@ -45,19 +57,22 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     private WeCharOrderMapper weCharOrderMapper;
     @Autowired
     private ProductClient productClient;
+    private AmqpTemplate amqpTemplate;
     @Transactional
-    public OrderDTO create(OrderDTO orderDTO) {
+    public  OrderDTO create(OrderDTO orderDTO) {
 
-        String orderId = KeyUtil.genUniqueKey();
-        //查询商品信息(调用商品服务) 获取商品信息
-        List<String> productIdList = orderDTO.getOrderDetailList().stream()
-                .map(WeCharOrdeDetail::getProductid)
-                .collect(Collectors.toList());
-        //得到商品信息
-        System.out.println();
-        List<WeChatProductOutput> productInfoList = productClient.listForOrder(productIdList);
-        System.out.println("---------------"+productInfoList);
-        //计算总价
+        String  orderId = KeyUtil.genUniqueKey();
+        List<WeChatProductOutput> productInfoList = new ArrayList<>();
+        //得到商品的ID
+        for (WeCharOrdeDetail weCharOrdeDetail: orderDTO.getOrderDetailList()) {
+            WeChatProductOutput weChatProductOutput = redisService.get(WeChatProductOutputKey.getById, "" + weCharOrdeDetail.getProductid(), WeChatProductOutput.class);
+            if (weChatProductOutput.getStock() < 0) {
+                throw new OrderException(ResultEnum.PEODUCT_STOCK_EMPTY);
+            }
+            weChatProductOutput.setStock(weChatProductOutput.getStock() - weCharOrdeDetail.getNum());
+            redisService.set(WeChatProductOutputKey.getById, "" + weChatProductOutput.getId(), weChatProductOutput);
+            productInfoList.add(weChatProductOutput);
+        }
         BigDecimal orderAmout = new BigDecimal(BigInteger.ZERO);
         BigDecimal orderAmoutSum = new BigDecimal(BigInteger.ZERO);
          //订单商品入库
@@ -68,7 +83,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                     orderAmout = productInfo.getPrice()
                             .multiply(new BigDecimal(weCharOrdeDetail.getNum()));
                     weCharOrdeDetail.setUserprice(orderAmout);
-                    System.out.println("productInfo"+productInfo.getOrderid());
+
                     BeanUtils.copyProperties(productInfo, weCharOrdeDetail);
                     weCharOrdeDetail.setOid(orderId);
                     weCharOrdeDetail.setProductname(productInfo.getTitle());
@@ -84,19 +99,18 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                     weCharOrdeDetail.setDeposit(aDouble);
                     weCharOrdeDetail.setRent(aDouble);
                     weCharOrdeDetail.setDay(320);
-                    weCharOrdeDetail.setStatus(1212);
+                    weCharOrdeDetail.setStatus(OrderStatusEnum.DFINISHED.getCode());
                     weCharOrdeDetail.setUserid(12);
                     orderAmoutSum =  orderAmoutSum.add(orderAmout);
                     //订单详情入库
-                    weCharOrdeDetailMapper.insert(weCharOrdeDetail);
+                    try {
+                        int count =  weCharOrdeDetailMapper.insert(weCharOrdeDetail);
+                    }catch (Exception ex){
+
+                    }
                 }
             }
         }
-        //扣库存(调用商品服务)
-        List<DecreaseStockInput> decreaseStockInputList = orderDTO.getOrderDetailList().stream()
-                .map(e -> new DecreaseStockInput(e.getProductid(), e.getNum()))
-                .collect(Collectors.toList());
-        productClient.decreaseStock(decreaseStockInputList);
 
         //订单入库
         WeCharOrder orderMaster = new WeCharOrder();
@@ -104,10 +118,24 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         BeanUtils.copyProperties(orderDTO, orderMaster);
         System.out.println(orderDTO.getOpenid()+"=========="+orderMaster.getOpenid());
         orderMaster.setInvoicetime(new Date());
+        orderMaster.setOrderstate(OrderStatusEnum.DFINISHED.getCode());
         orderMaster.setOrderno(orderId);
         orderMaster.setTotal(orderAmoutSum);
         weCharOrderMapper.insert(orderMaster);
-        webSocket.sendMessage(orderDTO.getOrderno());
+        DecreaseStockInputReceiver decreaseStockInputReceiver = new DecreaseStockInputReceiver();
+        //扣库存(调用商品服务)
+        List<DecreaseStockInput> decreaseStockInputList = orderDTO.getOrderDetailList().stream()
+                .map(e -> new DecreaseStockInput(e.getProductid(), e.getNum()))
+                .collect(Collectors.toList());
+        decreaseStockInputReceiver.setDecreaseStockInput(decreaseStockInputList);
+        decreaseStockInputReceiver.setOrderId(orderId);
+        try {
+            rabbitOrderSender.sendOrder(decreaseStockInputReceiver);
+        }catch (Exception ex){
+            ex.printStackTrace();
+            throw new OrderException(ResultEnum.PEODUCT_STOCK_EMPTY);
+        }
+
         return orderDTO;
     }
 
@@ -134,8 +162,8 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     @Override
     public OrderDTO findOne(String buyeropenid, String orderId) {
         WeCharOrder weCharOrder = weCharOrderMapper.BuyerFinaAllByid(Integer.parseInt(orderId),buyeropenid);
-        if (weCharOrder ==null){
-            throw  new OrderException(ResultEnum.CART_EMPTY.ORDER_NOT_EXIST);
+        if (weCharOrder ==null || weCharOrder.getOrderstate()==OrderStatusEnum.CANCEL.getCode()){
+            throw  new OrderException(ResultEnum.ORDER_NOT_EXIST);
         }
         //查看订单详情
         List<WeCharOrdeDetail> weCharOrdeDetails = weCharOrdeDetailMapper.findByOrderno(weCharOrder.getOrderno());
@@ -146,8 +174,6 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         orderDTO.setOrderDetailList(weCharOrdeDetails);
         return orderDTO;
     }
-
-
 
     /**
      * 取消订单
@@ -164,10 +190,18 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
 
         weCharOrder.setOrderstate(OrderStatusEnum.DCANCEL.getCode());
         weCharOrderMapper.updateByPrimary(weCharOrder);
-        System.out.println(weCharOrder.getOrderstate());
+        WeCharOrdeDetail weCharOrdeDetail=new WeCharOrdeDetail();
+        weCharOrdeDetail.setStatus(OrderStatusEnum.DCANCEL.getCode());//修改订单详情状态
+        weCharOrdeDetail.setOid(weCharOrder.getOrderno());//订单编号
+        weCharOrdeDetailMapper.updateByPrimaryOid(weCharOrdeDetail);
         OrderDTO orderDTO = OrderMaster2OrderDTOConverter.convert(weCharOrder);
         return orderDTO;
     }
+    @Override
+    public List<WeCharOrder> orderdetailuserid(int openid) {
+        return weCharOrderMapper.orderdetailuserid(openid);
+    }
+
 
     /**
      * 新增方法 查询订单详情

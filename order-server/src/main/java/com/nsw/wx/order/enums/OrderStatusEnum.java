@@ -9,14 +9,13 @@ import lombok.Getter;
 @Getter
 public enum OrderStatusEnum implements CodeEnum {
     NEW(0, "新订单"),
-    FINISHED(1, "完结"),
-    DCANCEL(2, "待取消"),
-    CANCEL(3, "取消"),
+    DFINISHED(1,"排队中"),
+    FINISHED(2, "完结"),
+    DCANCEL(3, "待取消"),
+    CANCEL(4, "取消"),
     ;
     private Integer code;
-
     private String message;
-
     OrderStatusEnum(Integer code, String message) {
         this.code = code;
         this.message = message;

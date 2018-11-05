@@ -1,10 +1,13 @@
 package com.nsw.wx.order.pojo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.sun.xml.internal.ws.developer.Serialization;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -13,8 +16,11 @@ import java.util.Date;
  * 订单详情
  */
 @Data
-public class WeCharOrdeDetail {
+public class WeCharOrdeDetail implements Serializable {
     private Integer id; //ID
+
+    //此字段表中无
+    private String orderstatus;//筛选（状态）显示到前端页面
 
     private Integer userid; //用户ID
 
@@ -62,5 +68,4 @@ public class WeCharOrdeDetail {
 
     private Integer status; //状态
 
-    WeCharOrder order = new WeCharOrder();
 }

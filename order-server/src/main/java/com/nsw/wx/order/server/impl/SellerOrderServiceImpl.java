@@ -11,10 +11,9 @@ import com.nsw.wx.order.mapper.WeCharOrdeDetailMapper;
 import com.nsw.wx.order.mapper.WeCharOrderMapper;
 import com.nsw.wx.order.pojo.WeCharOrdeDetail;
 import com.nsw.wx.order.pojo.WeCharOrder;
+import com.nsw.wx.order.redis.RedisService;
 import com.nsw.wx.order.server.SellerOrderService;
-import com.nsw.wx.order.util.KeyUtil;
-import common.DecreaseStockInput;
-import common.WeChatProductOutput;
+import com.nsw.wx.order.common.DecreaseStockInput;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -36,13 +35,14 @@ import java.util.stream.Collectors;
 @Service
 public class SellerOrderServiceImpl implements SellerOrderService {
 
-
-@Autowired
-private WeCharOrdeDetailMapper weCharOrdeDetailMapper;
-@Autowired
-private WeCharOrderMapper weCharOrderMapper;
-@Autowired
-private ProductClient productClient;
+    @Autowired
+    private RedisService redisService;
+    @Autowired
+    private WeCharOrdeDetailMapper weCharOrdeDetailMapper;
+    @Autowired
+    private WeCharOrderMapper weCharOrderMapper;
+    @Autowired
+    private ProductClient productClient;
 
     @Override
     public OrderDTO finish(String orderId) {
@@ -59,14 +59,12 @@ private ProductClient productClient;
             throw new OrderException(ResultEnum.ORDER_DETAIL_NOT_EXIST);
         }
         //订单状态转换
-
         weCharOrder.setOrderstate(OrderStatusEnum.FINISHED.getCode());
         int count =   weCharOrderMapper.updateOrderStatus(weCharOrder);
         System.out.println();
         OrderDTO orderDTO = new OrderDTO();
         BeanUtils.copyProperties(weCharOrder, orderDTO);
         orderDTO.setOrderDetailList(weCharOrdeDetails);
-
         return orderDTO;
     }
 
@@ -110,21 +108,27 @@ private ProductClient productClient;
             throw  new OrderException(ResultEnum.CART_EMPTY.ORDER_NOT_EXIST);
         }
         //判断订单转态
+
         if (!weCharOrder.getOrderstate().equals(OrderStatusEnum.DCANCEL.getCode())) {
             throw  new OrderException(ResultEnum.ORDER_STATUS_ERROR);
         }
         //修改订单状态
-        System.out.println("---------->"+OrderStatusEnum.CANCEL.getCode());
         weCharOrder.setOrderstate(OrderStatusEnum.CANCEL.getCode());
         int count =   weCharOrderMapper.updateOrderStatus(weCharOrder);
-
         System.out.println("调用商品加库存........");
-        System.out.println("++++++++++++++++++"+weCharOrder.getOrderno());
         List<WeCharOrdeDetail> weCharOrdeDetails = weCharOrdeDetailMapper.findByOrderno(weCharOrder.getOrderno());
         List<DecreaseStockInput> decreaseStockInputList = weCharOrdeDetails.stream()
                 .map(e -> new DecreaseStockInput(e.getProductid(), e.getNum()))
                 .collect(Collectors.toList());
-        productClient.addStock(decreaseStockInputList);
+        System.out.println("===="+decreaseStockInputList+"-");
+        try{
+            productClient.addStock(decreaseStockInputList);
+        }catch (Exception ex){
+            weCharOrder.setOrderstate(OrderStatusEnum.DCANCEL.getCode());
+            weCharOrderMapper.updateOrderStatus(weCharOrder);
+            throw new OrderException(ResultEnum.ORDER_END);
+        }
+
         return count;
     }
 

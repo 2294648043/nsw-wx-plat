@@ -2,6 +2,7 @@ package com.nsw.wx.order.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.nsw.wx.order.VO.ResultVO;
+import com.nsw.wx.order.VO.WeCharOrderVO;
 import com.nsw.wx.order.converter.OrderForm2OrderDTOConverter;
 import com.nsw.wx.order.converter.OrderMaster2OrderDTOConverter;
 import com.nsw.wx.order.dto.OrderDTO;
@@ -12,18 +13,23 @@ import com.nsw.wx.order.pojo.WeCharOrdeDetail;
 import com.nsw.wx.order.pojo.WeCharOrder;
 import com.nsw.wx.order.server.BuyerOrderService;
 import com.nsw.wx.order.VO.ResultVOUtil;
+import com.nsw.wx.order.server.SellerOrderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 买家订单
@@ -37,6 +43,9 @@ import java.util.Map;
 public class BuyerOrderController {
     @Autowired
     private BuyerOrderService buyerOrderService;
+
+    @Autowired
+    private SellerOrderService orderService;
     /**
      * 1. 参数检验
      * 2. 查询商品信息(调用商品服务)
@@ -54,7 +63,7 @@ public class BuyerOrderController {
                     bindingResult.getFieldError().getDefaultMessage());
         }
         OrderDTO orderDTO = OrderForm2OrderDTOConverter.convert(orderForm);
-        System.out.println("openid:"+orderDTO.getOpenid()+"-------------");
+
         if (CollectionUtils.isEmpty(orderDTO.getOrderDetailList())) {
             log.error("【创建订单】购物车信息为空");
             throw new OrderException(ResultEnum.CART_EMPTY);
@@ -99,6 +108,59 @@ public class BuyerOrderController {
        buyerOrderService.cancel(orderId,openid);
         return ResultVOUtil.success();
     }
+
+    /**
+     * 根据用户id和订单状态查询订
+     * 单编号再根据编号查询订单详情
+     * @param response
+     * @param openid
+     * @param
+     * @return
+     */
+    @RequestMapping("orderdetailuserid")
+    public Object orderdetailuserid(HttpServletResponse response,
+                                    @RequestParam("openid") int openid) {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        List<WeCharOrder> weCharOrder = buyerOrderService.orderdetailuserid(openid);
+        //2. 获取weCharOrder的订单编号
+        List<String> categoryOIDList = weCharOrder.stream()
+                .map(WeCharOrder::getOrderno)
+                .collect(Collectors.toList());
+        System.out.println(categoryOIDList);
+        List<WeCharOrdeDetail> weCharOrdeDetail = (List<WeCharOrdeDetail>) orderService.selectoid(categoryOIDList);
+        System.out.println(weCharOrdeDetail);
+        List<WeCharOrderVO> weCharOrderList =new ArrayList<>();
+        for (WeCharOrder wecharorder : weCharOrder) {
+            WeCharOrderVO weCharOrder1=new WeCharOrderVO();
+            weCharOrder1.setId(wecharorder.getId());
+            weCharOrder1.setOrderno(wecharorder.getOrderno());
+            weCharOrder1.setTotal(wecharorder.getTotal());
+            weCharOrder1.setOpenid(wecharorder.getOpenid());
+            weCharOrder1.setOrderstate(wecharorder.getOrderstate());
+            List<WeCharOrdeDetail> weCharOrdeDetailX = new ArrayList<>();
+            for (WeCharOrdeDetail productInfo : weCharOrdeDetail) {
+                if (productInfo.getStatus() == 0) {
+                    productInfo.setOrderstatus("新订单");
+                } else if (productInfo.getStatus() == 1) {
+                    productInfo.setOrderstatus("排队");
+                } else if (productInfo.getStatus() == 2) {
+                    productInfo.setOrderstatus("完结");
+                } else if (productInfo.getStatus() == 3) {
+                    productInfo.setOrderstatus("待取消");
+                } else if (productInfo.getStatus() == 4) {
+                    productInfo.setOrderstatus("已取消");
+                }
+                WeCharOrdeDetail weCharOrdeDetail1 = new WeCharOrdeDetail();
+                BeanUtils.copyProperties(productInfo, weCharOrdeDetail1);
+                weCharOrdeDetailX.add(weCharOrdeDetail1);
+            }
+            weCharOrder1.setWeCharOrdeDetailVOS(weCharOrdeDetailX);
+            weCharOrderList.add(weCharOrder1);
+        }
+        System.out.println("+++++++++++++++++++++++++++"+weCharOrderList);
+        return weCharOrderList;
+    }
+
 
     @RequestMapping("/detailoid")
     public List<WeCharOrdeDetail> detail(HttpServletResponse response,String oid) {

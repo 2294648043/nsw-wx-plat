@@ -13,16 +13,39 @@ spring:
       driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     application:
       name: order-service
+
     rabbitmq:
                   host: localhost
                   port: 5672
                   username: guest
                   password: guest
+                  virtual-host: /
+                  connection-timeout: 15000
+                  publisher-confirms: true
+                  publisher-returns: true
+                  template:
+                    mandatory: true
+                  listener:
+                    simple:
+                      acknowledge-mode: manual
+                      max-concurrency: 10
+                      concurrency: 5
+
     redis:
-        database: 0
-        host: 127.0.0.1
-        port: 6379
-        timeout: 2000
+      database: 0
+      host: 47.93.25.55
+      port: 6379
+      password: 123456
+      jedis:
+        pool:
+          max-active: 1000
+          max-wait: 500
+          max-idle: 500
+
+
+
+
+
 #    cloud:
 #        config:
 #          discovery:
@@ -36,4 +59,4 @@ mybatis:
   mapper-locations: classpath:mapping/*.xml  #注意：一定要对应mapper映射xml文件的所在路径
   type-aliases-package: com.nsw.wx.product.pojo
 server:
-  port: 9085 # 注意：对应实体类的路径
+  port: 9087 # 注意：对应实体类的路径

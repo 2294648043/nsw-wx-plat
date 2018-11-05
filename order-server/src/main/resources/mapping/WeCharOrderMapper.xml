@@ -422,4 +422,15 @@
     UPDATE tbWeCharOrder SET orderstate = #{orderstate} WHERE id= #{id}
   </update>
 
+    <update id ="updateOrderSta" parameterType="com.nsw.wx.order.pojo.WeCharOrder">
+    update tbWeCharOrder
+        SET OrderState = #{orderstate} where OrderNo = #{orderno}
+    </update>
+
+    <select id="orderdetailuserid" resultMap="BaseResultMap" parameterType="com.nsw.wx.order.pojo.WeCharOrder" >
+        select * from tbWeCharOrder where
+        <if test="openid !=null">
+            Openid=#{openid}
+        </if>
+    </select>
 </mapper>

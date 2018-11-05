@@ -14,7 +14,11 @@ public enum ResultEnum {
     ORDER_STATUS_ERROR(4,"订单状态错误"),
     ORDER_DETAIL_NOT_EXIST(5,"订单详情不存在"),
     ORDER_NOT_OPENID(6,"ipenid不存在"),
-    ORDER_END(7,"完结订单失败")
+    ORDER_END(7,"完结订单失败"),
+    PRODUCT_EMPTY(8,"商品信息信为空"),
+    PEODUCT_STOCK_EMPTY(9,"存库不足"),
+    TOO_MANY_PROPLE(10,"人太多了"),
+    REDIS_STOCK_ERROR(11,"redis库存异常")
     ;
 
     private Integer code;

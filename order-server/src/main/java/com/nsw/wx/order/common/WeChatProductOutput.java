@@ -1,4 +1,4 @@
-package common;
+package com.nsw.wx.order.common;
 
 import lombok.Data;
 
@@ -11,7 +11,7 @@ import java.util.Date;
  * 2018-10-19 9:13
  */
 @Data
-public class WeChatProductOutput implements Serializable {
+public class WeChatProductOutput implements  Serializable {
 
 
     private String id;//主键

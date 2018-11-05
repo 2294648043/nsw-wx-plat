@@ -41,10 +41,17 @@ public interface WeCharOrdeDetailMapper {
 
     /**
      * 查询订单详情
+     * @param orderno
+     * @return
+     */
+    List<WeCharOrdeDetail> findByOrderno(String orderno);
+
+    /**
+     * 根据订单编号查询订单详情
      * @param oid
      * @return
      */
-    List<WeCharOrdeDetail> findByOrderno(String oid);
+    List<WeCharOrdeDetail> selectoid(List<String> oid);
 
     /**
      * 查询订单详情

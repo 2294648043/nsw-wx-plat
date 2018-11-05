@@ -1,13 +1,9 @@
-package com.nsw.wx.order.dto;
+package com.nsw.wx.order.message;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.nsw.wx.order.enums.DeliverystateEnum;
 import com.nsw.wx.order.enums.OrderStatusEnum;
 import com.nsw.wx.order.enums.PayStatusEnum;
 import com.nsw.wx.order.pojo.WeCharOrdeDetail;
-import com.nsw.wx.order.util.Date2LongSerializer;
-import com.nsw.wx.order.util.EnumUtil;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -16,11 +12,13 @@ import java.util.Date;
 import java.util.List;
 
 /**
- 张维维
+ * Created by IntelliJ IDEA.
+ *
+ * @author 张维维
+ * date: 2018/10/30/030 11:31
  */
 @Data
-public class OrderDTO  implements  Serializable  {
-
+public class OrderMq implements Serializable {
     private Integer id; //ID
 
     private Integer userid;  //用户ID
@@ -74,14 +72,12 @@ public class OrderDTO  implements  Serializable  {
 
     private String region;  //地区
 
-
     private String invoice; //发票
 
     private String invoiceno; //发票编号
 
 
     private BigDecimal freight;     //运费
-
 
     private String logisticsno;    //物流编号
 
@@ -145,25 +141,4 @@ public class OrderDTO  implements  Serializable  {
 
     private BigDecimal defaultfreight;  //默认的运费
 
-    /** 支付状态, 默认为0未支付. */
-//    private Integer paystate;
-    /** 创建时间. */
-//    @JsonSerialize(using = Date2LongSerializer.class)
-//    private Date createTime;
-//
-//    /** 更新时间. */
-//    @JsonSerialize(using = Date2LongSerializer.class)
-    private Date updateTime;
-
-    private List<WeCharOrdeDetail> orderDetailList;
-
-//    @JsonIgnore
-//    public OrderStatusEnum getOrderStatusEnum() {
-//        return EnumUtil.getByCode(orderid, OrderStatusEnum.class);
-//    }
-//
-//    @JsonIgnore
-//    public PayStatusEnum getPayStatusEnum() {
-//        return EnumUtil.getByCode( paystate, PayStatusEnum.class);
-//    }
 }

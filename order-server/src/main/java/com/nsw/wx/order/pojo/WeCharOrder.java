@@ -11,6 +11,7 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,6 +21,8 @@ import java.util.Date;
  */
 @ToString
 public class WeCharOrder {
+
+
     private Integer id; //ID
 
     private Integer enterpriseid; //企业ID
