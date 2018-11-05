@@ -1,5 +1,6 @@
 package com.nsw.wx.order.pojo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nsw.wx.order.enums.OrderStatusEnum;
 import com.nsw.wx.order.enums.PayStatusEnum;
@@ -71,7 +72,7 @@ public class WeCharOrder {
     private Boolean islock; //是否锁
 
     private Boolean enable; //是够启用
-
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date inputtime; //输入时间
 
     private Integer orderid;    //订单ID
@@ -105,7 +106,7 @@ public class WeCharOrder {
     private Integer logisticsid;    //物流ID
 
     private String logisticsjosn;   //物流数据
-
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date logisticstime; //物流数据
 
     private Integer sourceuserid;   //源标识
@@ -135,9 +136,9 @@ public class WeCharOrder {
     private String resultusers; //结果用户
 
     private Integer childenterpriseid;  //子企业标识
-
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date deliverytime;  //交货时间
-
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date invoicetime;   //发票时间
 
     private String paymentproofs;   //付款证明
@@ -145,7 +146,7 @@ public class WeCharOrder {
     private String paymentmethod;   //支付方式
 
     private String notedescription; //注意描述
-
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date paymenttime;   //付款时间
 
     private Integer ordertype;  //订单类型
@@ -200,6 +201,23 @@ public class WeCharOrder {
         mphone = this.mphone;
 
     }
-
     public  WeCharOrder(){}
+
+
+    /**
+     * 新增字段
+     */
+    private String oid; //订单编号
+
+    private String productname; //产品名称
+
+    private BigDecimal productprice; //产品价格
+
+    private BigDecimal userprice; //用户价格
+
+    private Integer num; //购买数量
+
+    private BigDecimal pricesum; //价格总和
+
+
 }

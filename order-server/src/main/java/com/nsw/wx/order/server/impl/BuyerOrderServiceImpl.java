@@ -147,6 +147,8 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         return orderDTO;
     }
 
+
+
     /**
      * 取消订单
      * @param orderId
@@ -165,5 +167,15 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         System.out.println(weCharOrder.getOrderstate());
         OrderDTO orderDTO = OrderMaster2OrderDTOConverter.convert(weCharOrder);
         return orderDTO;
+    }
+
+    /**
+     * 新增方法 查询订单详情
+     * @param oid
+     * @return
+     */
+    @Override
+    public List<WeCharOrdeDetail> list(String oid) {
+        return weCharOrdeDetailMapper.findByDetailOid(oid);
     }
 }

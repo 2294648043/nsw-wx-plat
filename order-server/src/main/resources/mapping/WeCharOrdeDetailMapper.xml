@@ -128,8 +128,11 @@
     where OID = #{OID,jdbcType=VARCHAR}
   </delete>
 
-
   <select id="findByOrderno" parameterType="String" resultMap="BaseResultMap">
-    select * from tbWeCharOrdeDetail where oid = #{orderno}
+    select * from tbWeCharOrdeDetail where oid = #{oid}
+  </select>
+
+  <select id="findByDetailOid" parameterType="String" resultMap="BaseResultMap">
+    select ProductName,ProductPrice,Num,PriceSum from tbWeCharOrdeDetail where oid = #{oid}
   </select>
 </mapper>

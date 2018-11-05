@@ -12,7 +12,7 @@ public interface WeCharOrderMapper {
     /**
      * @return list
      */
-    List<WeCharOrder> findList();
+    List<WeCharOrder> findList(@Param("enterpriseid") Integer enterpriseid);
 
     /**
      * 买家订单列表

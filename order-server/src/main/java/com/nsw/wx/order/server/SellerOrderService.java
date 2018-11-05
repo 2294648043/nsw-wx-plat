@@ -4,8 +4,6 @@ import com.github.pagehelper.PageInfo;
 import com.nsw.wx.order.dto.OrderDTO;
 import com.nsw.wx.order.pojo.WeCharOrdeDetail;
 import com.nsw.wx.order.pojo.WeCharOrder;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -27,7 +25,7 @@ public interface SellerOrderService {
     List<WeCharOrdeDetail> findOne(String orderId);
 
     /** 查询订单列表. */
-    PageInfo <WeCharOrder> findList (Integer page, Integer limit );
+    PageInfo <WeCharOrder> findList (Integer page, Integer limit,Integer enterpriseid );
 
     /** 取消订单. */
     Object cancel(String orderId);

@@ -1,5 +1,6 @@
 package com.nsw.wx.order.pojo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,7 +39,7 @@ public class WeCharOrdeDetail {
     private String attributekeyvalue; //键值属性
 
     private Boolean enable; //是否启用
-
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date inputtime; //输入时间
 
     private Integer orderid; //订单ID

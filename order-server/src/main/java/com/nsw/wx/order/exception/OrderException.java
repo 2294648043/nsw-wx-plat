@@ -3,8 +3,8 @@ package com.nsw.wx.order.exception;
 import com.nsw.wx.order.enums.ResultEnum;
 
 /**
- * Created by 廖师兄
- * 2017-12-10 17:27
+ * Created by zww
+ * 2018-10-25
  */
 public class OrderException extends RuntimeException {
 

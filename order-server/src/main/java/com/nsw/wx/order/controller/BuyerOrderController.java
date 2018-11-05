@@ -8,6 +8,7 @@ import com.nsw.wx.order.dto.OrderDTO;
 import com.nsw.wx.order.enums.ResultEnum;
 import com.nsw.wx.order.exception.OrderException;
 import com.nsw.wx.order.form.OrderForm;
+import com.nsw.wx.order.pojo.WeCharOrdeDetail;
 import com.nsw.wx.order.pojo.WeCharOrder;
 import com.nsw.wx.order.server.BuyerOrderService;
 import com.nsw.wx.order.VO.ResultVOUtil;
@@ -86,8 +87,8 @@ public class BuyerOrderController {
         return ResultVOUtil.success(orderDTOList,count);
     }
     //订单详情
-    @GetMapping("/detail")
-    public ResultVO<OrderDTO> detail(@RequestParam("openid") String openid,
+    @RequestMapping("/detail")
+    public ResultVO<OrderDTO> detail( @RequestParam(value ="openid") String openid,
                                      @RequestParam("orderId") String orderId) {
        return ResultVOUtil.success(buyerOrderService.findOne(openid, orderId));
     }
@@ -97,5 +98,12 @@ public class BuyerOrderController {
                            @RequestParam("orderId") String orderId) {
        buyerOrderService.cancel(orderId,openid);
         return ResultVOUtil.success();
+    }
+
+    @RequestMapping("/detailoid")
+    public List<WeCharOrdeDetail> detail(HttpServletResponse response,String oid) {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        List<WeCharOrdeDetail> list  = buyerOrderService.list(oid);
+        return list;
     }
 }

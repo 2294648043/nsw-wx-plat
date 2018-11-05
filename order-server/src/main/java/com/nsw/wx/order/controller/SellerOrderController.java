@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 /**
@@ -56,32 +57,41 @@ public class SellerOrderController {
         return ResultVOUtil.success();
     }
 
-    //订单列表
-    @GetMapping("/list")
-    public Object list(HttpServletResponse response,@RequestParam(value = "page") Integer page,
-                       @RequestParam(value = "limit") Integer limit) {
+    /**
+     * 查询所有订单 可根据
+     * @param response
+     * @param page
+     * @param limit
+     * @return
+     */
+    @RequestMapping("/list")
+    public Object list(HttpServletResponse response
+                ,@RequestParam(value = "page") Integer page
+                ,@RequestParam(value = "limit") Integer limit
+                ,@RequestParam(value = "enterpriseid",required = false) String enterpriseid) {
         response.setHeader("Access-Control-Allow-Origin", "*");
-        PageInfo<WeCharOrder> pageInfoList = orderService.findList(page, limit);
-
+        PageInfo<WeCharOrder> pageInfoList = orderService.findList(page, limit,Integer.parseInt(enterpriseid));
         List<OrderDTO> orderDTOList = OrderMaster2OrderDTOConverter.convert(pageInfoList.getList());
         long count=pageInfoList.getTotal();
-        return ResultVOUtil.success(orderDTOList,count);
+        System.out.println(count);
+        return JsonData.buildSuccess(count,orderDTOList);
     }
 
     //订单详情
     @PostMapping("/detail")
-    public Object detail(@RequestParam("orderId") String orderId) {
-
-      List <WeCharOrdeDetail> weCharOrdeDetailList = orderService.findOne( orderId);
+    public Object detail(@RequestParam("orderId") String orderId,HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        List <WeCharOrdeDetail> weCharOrdeDetailList = orderService.findOne( orderId);
      return JsonData.buildSuccess(weCharOrdeDetailList);
 
     }
     //取消订单
-    @PostMapping("/cancel")
-    public ResultVO cancel(@RequestParam("orderId") String orderId) {
-
+    @RequestMapping("/cancel")
+    public Object cancel(@RequestParam("orderId") String orderId,HttpServletResponse response) {
+        response.setHeader("Access-Control-Allow-Origin", "*");
         int count = (int) orderService.cancel(orderId);
-        return ResultVOUtil.success();
+        System.out.println(count);
+        return count;
     }
 }
 

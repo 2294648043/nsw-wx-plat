@@ -32,6 +32,8 @@ public interface BuyerOrderService {
     PageInfo<WeCharOrder> buyerfindList (String buyerOpenid,Integer page, Integer limit );
     /** 查询订单详情 */
     OrderDTO  findOne(String buyeropenid,String orderId);
+    /** 查询订单详情 */
+    List<WeCharOrdeDetail>  list(String Oid);
     /** 取消订单. */
     OrderDTO cancel(String orderId,String openid);
 

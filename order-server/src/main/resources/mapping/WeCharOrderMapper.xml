@@ -145,8 +145,11 @@
       #{defaultfreight,jdbcType=DECIMAL},#{openid})
   </insert>
 
-    <select id="findList" parameterType="com.nsw.wx.order.pojo.WeCharOrder" resultMap="BaseResultMap">
-   select orderno,fullname,mphone,address,total,orderstate,paystate from tbWeCharOrder
+    <select id="findList" parameterType="Integer" resultMap="BaseResultMap">
+   select * from tbWeCharOrder where 1=1
+        <if test="enterpriseid != null and enterpriseid != 0">
+            and EnterpriseID=#{enterpriseid}
+        </if>
   </select>
 
     <select id="BuyerfindList" parameterType="com.nsw.wx.order.pojo.WeCharOrder" resultMap="BaseResultMap">

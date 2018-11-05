@@ -87,9 +87,9 @@ private ProductClient productClient;
 
 
     @Override
-    public PageInfo<WeCharOrder> findList(Integer page, Integer limit) {
+    public PageInfo<WeCharOrder> findList(Integer page, Integer limit,Integer enterpriseid) {
         PageHelper.startPage(page,limit);
-        List<WeCharOrder> findlist = weCharOrderMapper.findList();
+        List<WeCharOrder> findlist = weCharOrderMapper.findList(enterpriseid);
         System.out.println("=="+findlist);
         PageInfo<WeCharOrder> pageInfoUserList =  new PageInfo<WeCharOrder>(findlist);
 
@@ -110,16 +110,16 @@ private ProductClient productClient;
             throw  new OrderException(ResultEnum.CART_EMPTY.ORDER_NOT_EXIST);
         }
         //判断订单转态
-
         if (!weCharOrder.getOrderstate().equals(OrderStatusEnum.DCANCEL.getCode())) {
             throw  new OrderException(ResultEnum.ORDER_STATUS_ERROR);
         }
         //修改订单状态
+        System.out.println("---------->"+OrderStatusEnum.CANCEL.getCode());
         weCharOrder.setOrderstate(OrderStatusEnum.CANCEL.getCode());
-
         int count =   weCharOrderMapper.updateOrderStatus(weCharOrder);
 
         System.out.println("调用商品加库存........");
+        System.out.println("++++++++++++++++++"+weCharOrder.getOrderno());
         List<WeCharOrdeDetail> weCharOrdeDetails = weCharOrdeDetailMapper.findByOrderno(weCharOrder.getOrderno());
         List<DecreaseStockInput> decreaseStockInputList = weCharOrdeDetails.stream()
                 .map(e -> new DecreaseStockInput(e.getProductid(), e.getNum()))
