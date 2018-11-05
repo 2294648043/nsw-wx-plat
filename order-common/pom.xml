@@ -4,11 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.nsw.wx</groupId>
-    <artifactId>order-common</artifactId>
+    <artifactId>order-com.nsw.wx.order.common</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>order-common</name>
+    <name>order-com.nsw.wx.order.common</name>
     <description>Demo project for Spring Boot</description>
 
     <parent>

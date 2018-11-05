@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 import com.nsw.wx.order.dto.OrderDTO;
 import com.nsw.wx.order.pojo.WeCharOrdeDetail;
 import com.nsw.wx.order.pojo.WeCharOrder;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -30,5 +31,11 @@ public interface SellerOrderService {
     /** 取消订单. */
     Object cancel(String orderId);
 
+    /**
+     * 根据订单编号查询订单详情
+     * @param oid
+     * @return
+     */
+    List<WeCharOrdeDetail> selectoid(List<String> oid);
 
 }

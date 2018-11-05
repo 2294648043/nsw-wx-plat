@@ -132,4 +132,11 @@
   <select id="findByOrderno" parameterType="String" resultMap="BaseResultMap">
     select * from tbWeCharOrdeDetail where oid = #{orderno}
   </select>
+
+  <select id="selectoid" resultMap="BaseResultMap" parameterType="java.util.List">
+    select * from tbWeCharOrdeDetail where OID IN
+    <foreach collection="list" index="index" item="orderno" open="(" separator="," close=")">
+      #{orderno}
+    </foreach>
+  </select>
 </mapper>

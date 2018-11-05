@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 import com.nsw.wx.order.dto.OrderDTO;
 import com.nsw.wx.order.pojo.WeCharOrdeDetail;
 import com.nsw.wx.order.pojo.WeCharOrder;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -35,4 +36,11 @@ public interface BuyerOrderService {
     /** 取消订单. */
     OrderDTO cancel(String orderId,String openid);
 
+
+    /**
+     * 根据用户openid查询订单信息
+     * @param openid
+     * @return
+     */
+    List<WeCharOrder> orderdetailuserid(@Param("openid") int openid);
 }

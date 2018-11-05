@@ -1,6 +1,6 @@
 package com.nsw.wx.order.message;
 
-import common.DecreaseStockInput;
+import com.nsw.wx.order.common.DecreaseStockInput;
 import lombok.Data;
 
 import java.io.Serializable;

@@ -39,9 +39,9 @@ public interface WeCharOrderMapper {
      * @param id
      * @return
      */
-   WeCharOrder finaAllByid(@Param("id") int id);
+    WeCharOrder finaAllByid(@Param("id") int id);
 
-   WeCharOrder BuyerFinaAllByid(@Param("orderId") int orderId,@Param("openid") String openid);
+    WeCharOrder BuyerFinaAllByid(@Param("orderId") int orderId,@Param("openid") String openid);
 
     /**
      * 通过订单编号修改订单的状态
@@ -56,11 +56,17 @@ public interface WeCharOrderMapper {
      * @return
      */
     int updateOrderStatus(WeCharOrder weCharOrder);
-/**修改订单状态
- *
- *
- */
+    /**修改订单状态
+     *
+     *
+    */
+    int updateOrderSta(WeCharOrder weCharOrder);
 
-int updateOrderSta(WeCharOrder weCharOrder);
 
+    /**
+     * 根据用户openid查询订单信息
+     * @param openid
+     * @return
+     */
+    List<WeCharOrder> orderdetailuserid(@Param("openid") int openid);
 }

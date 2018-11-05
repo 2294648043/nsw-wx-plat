@@ -1,5 +1,6 @@
 package com.nsw.wx.order.pojo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sun.xml.internal.ws.developer.Serialization;
 import lombok.Data;
 import lombok.Getter;
@@ -16,6 +17,9 @@ import java.util.Date;
 @Data
 public class WeCharOrdeDetail implements Serializable {
     private Integer id; //ID
+
+    //此字段表中无
+    private String orderstatus;//筛选（状态）显示到前端页面
 
     private Integer userid; //用户ID
 
@@ -40,7 +44,7 @@ public class WeCharOrdeDetail implements Serializable {
     private String attributekeyvalue; //键值属性
 
     private Boolean enable; //是否启用
-
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date inputtime; //输入时间
 
     private Integer orderid; //订单ID

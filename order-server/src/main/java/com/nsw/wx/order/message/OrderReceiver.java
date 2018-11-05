@@ -12,8 +12,8 @@
 //import com.nsw.wx.order.util.FastJsonConvertUtil;
 //import com.nsw.wx.order.util.KeyUtil;
 //import com.rabbitmq.client.Channel;
-//import common.DecreaseStockInput;
-//import common.WeChatProductOutput;
+//import com.nsw.wx.order.common.DecreaseStockInput;
+//import com.nsw.wx.order.common.WeChatProductOutput;
 //import org.apache.commons.lang.SerializationUtils;
 //import org.springframework.amqp.rabbit.annotation.*;
 //import org.springframework.amqp.support.AmqpHeaders;

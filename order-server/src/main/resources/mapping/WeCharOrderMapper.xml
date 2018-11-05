@@ -156,8 +156,8 @@
     <select id="finaAllByid" parameterType="com.nsw.wx.order.pojo.WeCharOrder" resultMap="BaseResultMap">
    select * from tbWeCharOrder where id=#{id}
   </select>
-    <select id="BuyerFinaAllByid" parameterType="com.nsw.wx.order.pojo.WeCharOrder" resultMap="BaseResultMap">
-   select * from tbWeCharOrder where id=#{orderId} and openid = #{openid}
+  <select id="BuyerFinaAllByid" parameterType="com.nsw.wx.order.pojo.WeCharOrder" resultMap="BaseResultMap">
+   select * from tbWeCharOrder where ID=#{orderId} and Openid = #{openid}
   </select>
 
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
@@ -423,4 +423,11 @@
     update tbWeCharOrder
         SET OrderState = #{orderstate} where OrderNo = #{orderno}
     </update>
+
+    <select id="orderdetailuserid" resultMap="BaseResultMap" parameterType="com.nsw.wx.order.pojo.WeCharOrder" >
+        select * from tbWeCharOrder where
+        <if test="openid !=null">
+            Openid=#{openid}
+        </if>
+    </select>
 </mapper>

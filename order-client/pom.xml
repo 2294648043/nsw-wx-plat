@@ -29,7 +29,7 @@
 
         <dependency>
             <groupId>com.imooc</groupId>
-            <artifactId>product-common</artifactId>
+            <artifactId>product-com.nsw.wx.order.common</artifactId>
         </dependency>
     </dependencies>
 </project>

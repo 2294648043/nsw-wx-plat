@@ -32,6 +32,7 @@ public class OrderForm2OrderDTOConverter {
         try {
             orderDetailList = gson.fromJson(orderForm.getItems(),
                     new TypeToken<List<WeCharOrdeDetail>>() {
+
                     }.getType());
         } catch (Exception e) {
             log.error("【json转换】错误, string={}", orderForm.getItems());

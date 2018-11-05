@@ -1,4 +1,4 @@
-package common;
+package com.nsw.wx.order.common;
 
 import lombok.Data;
 
@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 public class ProductInfoOutput   implements Serializable {
 
 
-
+    /**产品id*/
     private String productId;
 
     /** 名字. */
