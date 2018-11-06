@@ -1,19 +1,18 @@
 package com.nsw.wx.order.controller;
 
-import common.DecreaseStockInput;
-import common.WeChatProductOutput;
+import com.nsw.wx.order.common.DecreaseStockInput;
+import com.nsw.wx.order.common.WeChatProductOutput;
+import com.nsw.wx.order.fallbcak.ProductClientFallback;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
 /**
  * 商品服务客户端
  */
-@FeignClient(name = "PRODUCT-SERVICE")
+@FeignClient(name = "PRODUCT-SERVICE", fallback = ProductClientFallback.class)
 public interface ProductClient {
     /**
      * 查询商品信息

@@ -3,7 +3,9 @@ package com.nsw.wx.order.mapper;
 
 
 import com.nsw.wx.order.pojo.WeCharOrdeDetail;
+import com.nsw.wx.order.pojo.WeCharOrder;
 import jdk.nashorn.internal.runtime.options.Option;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,10 +36,10 @@ public interface WeCharOrdeDetailMapper {
     /**
      * author Wu_kong
      * 根据订单编号修改订单细节信息
-     * @param order
+     * @param
      * @return int
      */
-    int updateByPrimaryOid(WeCharOrdeDetail order);
+    int BuysupdateByPrimaryOid(WeCharOrdeDetail weCharOrdeDetail);
 
     /**
      * 查询订单详情
@@ -46,8 +48,14 @@ public interface WeCharOrdeDetailMapper {
      */
     List<WeCharOrdeDetail> findByOrderno(String orderno);
 
+    /**
+     * 修改订单详情
+     * @param orderId
+     * @param openid
+     * @return
+     */
 
-
+    int updateByPrimaryOid(WeCharOrdeDetail order);
 
 
 }

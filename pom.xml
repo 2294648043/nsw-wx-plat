@@ -39,8 +39,8 @@
             </dependency>
             <dependency>
                 <groupId>com.nsw.wx</groupId>
-                <artifactId>order-common</artifactId>
-                <version>${order-common.version}</version>
+                <artifactId>order-com.nsw.wx.order.common</artifactId>
+                <version>${order-com.nsw.wx.order.common.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

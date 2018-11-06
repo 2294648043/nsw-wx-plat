@@ -11,7 +11,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @MapperScan("com.nsw.wx.order.mapper")
 @EnableFeignClients
 @EnableCircuitBreaker
-//@EnableHystrixDashboard
+@EnableHystrixDashboard
 public class OrderServerApplication {
 
     public static void main(String[] args) {

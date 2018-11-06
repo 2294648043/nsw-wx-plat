@@ -132,4 +132,8 @@
   <select id="findByOrderno" parameterType="String" resultMap="BaseResultMap">
     select * from tbWeCharOrdeDetail where oid = #{orderno}
   </select>
+
+  <update id="BuysupdateByPrimaryOid" parameterType="String">
+  update  tbWeCharOrdeDetail status =#{status} where oid = #{oid}
+  </update>
 </mapper>

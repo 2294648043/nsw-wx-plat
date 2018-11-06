@@ -1,4 +1,4 @@
-package common;
+package com.nsw.wx.order.common;
 
 import lombok.Data;
 

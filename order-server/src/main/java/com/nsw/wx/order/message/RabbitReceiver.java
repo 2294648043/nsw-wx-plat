@@ -2,7 +2,9 @@ package com.nsw.wx.order.message;
 
 
 import com.nsw.wx.order.enums.OrderStatusEnum;
+import com.nsw.wx.order.mapper.WeCharOrdeDetailMapper;
 import com.nsw.wx.order.mapper.WeCharOrderMapper;
+import com.nsw.wx.order.pojo.WeCharOrdeDetail;
 import com.nsw.wx.order.pojo.WeCharOrder;
 import com.nsw.wx.order.server.impl.BuyerOrderServiceImpl;
 import com.nsw.wx.order.util.FastJsonConvertUtil;
@@ -24,6 +26,8 @@ public class RabbitReceiver {
 	private  RabbitOrderSender rabbitOrderSender;
 	@Autowired
 	private WeCharOrderMapper weCharOrderMapper;
+	@Autowired
+	private WeCharOrdeDetailMapper weCharOrdeDetailMapper;
 
 	@RabbitListener(bindings = @QueueBinding(
 			value = @Queue(value = "queue1",
@@ -45,11 +49,10 @@ public class RabbitReceiver {
 			WeCharOrder weCharOrder = new WeCharOrder();
 			weCharOrder.setOrderno(takeStock1.getOrderId());
 			weCharOrder.setOrderstate(OrderStatusEnum.NEW.getCode());
-
-			String OrderNo=takeStock1.getOrderId();
             int count  = weCharOrderMapper.updateOrderSta(weCharOrder);
-			System.out.println("秀给订单");
+
 			Long deliveryTag = (Long)headers.get(AmqpHeaders.DELIVERY_TAG);
+
 			channel.basicAck(deliveryTag, false);
 		}else{
 			System.out.println("错误");

@@ -1,15 +1,9 @@
 package com.nsw.wx.order.message;
 
-import java.util.Date;
-import java.util.List;
-
-import com.nsw.wx.order.enums.OrderStatusEnum;
 import com.nsw.wx.order.enums.ResultEnum;
 import com.nsw.wx.order.exception.OrderException;
 import com.nsw.wx.order.mapper.WeCharOrderMapper;
-import com.nsw.wx.order.pojo.WeCharOrder;
 import com.nsw.wx.order.util.FastJsonConvertUtil;
-import common.DecreaseStockInput;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate.ConfirmCallback;
 import org.springframework.amqp.rabbit.support.CorrelationData;

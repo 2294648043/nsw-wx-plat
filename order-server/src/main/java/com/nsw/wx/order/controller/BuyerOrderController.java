@@ -1,6 +1,7 @@
 package com.nsw.wx.order.controller;
 
 import com.github.pagehelper.PageInfo;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.nsw.wx.order.VO.ResultVO;
 import com.nsw.wx.order.converter.OrderForm2OrderDTOConverter;
 import com.nsw.wx.order.converter.OrderMaster2OrderDTOConverter;
@@ -12,17 +13,22 @@ import com.nsw.wx.order.pojo.WeCharOrder;
 import com.nsw.wx.order.server.BuyerOrderService;
 import com.nsw.wx.order.VO.ResultVOUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
+
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 买家订单
@@ -35,6 +41,8 @@ import java.util.Map;
 @Slf4j
 public class BuyerOrderController {
     @Autowired
+    private StringRedisTemplate redisTemplate;
+    @Autowired
     private BuyerOrderService buyerOrderService;
     /**
      * 1. 参数检验
@@ -44,9 +52,10 @@ public class BuyerOrderController {
      * 5. 订单入库
      */
     @PostMapping("/create")
-    // @HystrixCommand(fallbackMethod = "saveOrderFail")
+     @HystrixCommand(fallbackMethod = "saveOrderFail")
     public ResultVO<Map<String, String>> create(@Valid OrderForm orderForm,
-                                                BindingResult bindingResult) {
+                                                BindingResult bindingResult,
+                                                HttpServletRequest request) {
         if (bindingResult.hasErrors()) {
             log.error("【创建订单】参数不正确, orderForm={}", orderForm);
             throw new OrderException(ResultEnum.PARAM_ERROR.getCode(),
@@ -64,6 +73,38 @@ public class BuyerOrderController {
         map.put("orderId", result.getOrderno());
         return ResultVOUtil.success(map);
     }
+
+    /**
+     * 下单降级
+     * @param orderForm
+     * @param bindingResult
+     * @param request
+     * @return
+     */
+   private ResultVO <Map<String, String>>saveOrderFail (@Valid OrderForm orderForm,
+                                 BindingResult bindingResult, HttpServletRequest request){
+        //监控报警
+        String saveOrderKye = "save-order";
+        String sendValue = redisTemplate.opsForValue().get(saveOrderKye);
+        final String ip = request.getRemoteAddr();
+        new Thread( ()->{
+            if (StringUtils.isBlank(sendValue)) {
+                System.out.println("紧急短信，用户下单失败，请离开查找原因,ip地址是="+ip);
+                //发送一个http请求，调用短信服务 TODO
+                redisTemplate.opsForValue().set(saveOrderKye, "save-order-fail", 20, TimeUnit.SECONDS);
+
+            }else{
+                System.out.println("已经发送过短信，20秒内不重复发送");
+            }
+        }).start();
+
+
+        Map<String, Object> msg = new HashMap<>();
+        msg.put("code", -1);
+        msg.put("msg", "抢购人数太多，您被挤出来了，稍等重试");
+        return ResultVOUtil.success(msg);
+    }
+
     /**
      * 查询订单列表
      * @param response
@@ -85,7 +126,7 @@ public class BuyerOrderController {
         return ResultVOUtil.success(orderDTOList,count);
     }
     //订单详情
-    @GetMapping("/detail")
+    @PostMapping("/detail")
     public ResultVO<OrderDTO> detail(@RequestParam("openid") String openid,
                                      @RequestParam("orderId") String orderId) {
        return ResultVOUtil.success(buyerOrderService.findOne(openid, orderId));

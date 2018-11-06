@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="nsw-wx-order" />
         <module name="order-client" />
+        <module name="order-com.nsw.wx.order.common" />
         <module name="order-common" />
         <module name="order-server" />
         <module name="product-client" />

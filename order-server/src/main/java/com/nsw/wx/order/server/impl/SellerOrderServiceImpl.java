@@ -11,21 +11,15 @@ import com.nsw.wx.order.mapper.WeCharOrdeDetailMapper;
 import com.nsw.wx.order.mapper.WeCharOrderMapper;
 import com.nsw.wx.order.pojo.WeCharOrdeDetail;
 import com.nsw.wx.order.pojo.WeCharOrder;
+import com.nsw.wx.order.redis.RedisService;
 import com.nsw.wx.order.server.SellerOrderService;
-import com.nsw.wx.order.util.KeyUtil;
-import common.DecreaseStockInput;
-import common.WeChatProductOutput;
+import com.nsw.wx.order.common.DecreaseStockInput;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,32 +30,33 @@ import java.util.stream.Collectors;
 @Service
 public class SellerOrderServiceImpl implements SellerOrderService {
 
-
-@Autowired
-private WeCharOrdeDetailMapper weCharOrdeDetailMapper;
-@Autowired
-private WeCharOrderMapper weCharOrderMapper;
-@Autowired
-private ProductClient productClient;
+    @Autowired
+    private RedisService redisService;
+    @Autowired
+    private WeCharOrdeDetailMapper weCharOrdeDetailMapper;
+    @Autowired
+    private WeCharOrderMapper weCharOrderMapper;
+    @Autowired
+    private ProductClient productClient;
 
     @Override
     public OrderDTO finish(String orderId) {
         WeCharOrder weCharOrder = weCharOrderMapper.finaAllByid(Integer.parseInt(orderId));
         System.out.println(weCharOrder.getOrderstate());
-        if (weCharOrder ==null || !(weCharOrder.getOrderstate().equals(OrderStatusEnum.NEW.getCode()))){
+        if (weCharOrder == null || !(weCharOrder.getOrderstate().equals(OrderStatusEnum.NEW.getCode()))) {
 
-            throw  new OrderException(ResultEnum.ORDER_STATUS_ERROR);
+            throw new OrderException(ResultEnum.ORDER_STATUS_ERROR);
         }
 
         //查看订单详情
         List<WeCharOrdeDetail> weCharOrdeDetails = weCharOrdeDetailMapper.findByOrderno(weCharOrder.getOrderno());
-        if(CollectionUtils.isEmpty(weCharOrdeDetails)){
+        if (CollectionUtils.isEmpty(weCharOrdeDetails)) {
             throw new OrderException(ResultEnum.ORDER_DETAIL_NOT_EXIST);
         }
         //订单状态转换
 
         weCharOrder.setOrderstate(OrderStatusEnum.FINISHED.getCode());
-        int count =   weCharOrderMapper.updateOrderStatus(weCharOrder);
+        int count = weCharOrderMapper.updateOrderStatus(weCharOrder);
         System.out.println();
         OrderDTO orderDTO = new OrderDTO();
         BeanUtils.copyProperties(weCharOrder, orderDTO);
@@ -71,14 +66,14 @@ private ProductClient productClient;
     }
 
     @Override
-    public  List<WeCharOrdeDetail> findOne(String orderId ) {
+    public List<WeCharOrdeDetail> findOne(String orderId) {
         WeCharOrder weCharOrder = weCharOrderMapper.finaAllByid(Integer.parseInt(orderId));
-        if (weCharOrder ==null){
-            throw  new OrderException(ResultEnum.CART_EMPTY.ORDER_NOT_EXIST);
+        if (weCharOrder == null) {
+            throw new OrderException(ResultEnum.CART_EMPTY.ORDER_NOT_EXIST);
         }
         //查看订单详情
         List<WeCharOrdeDetail> weCharOrdeDetails = weCharOrdeDetailMapper.findByOrderno(weCharOrder.getOrderno());
-        if(CollectionUtils.isEmpty(weCharOrdeDetails)){
+        if (CollectionUtils.isEmpty(weCharOrdeDetails)) {
             throw new OrderException(ResultEnum.ORDER_DETAIL_NOT_EXIST);
         }
 
@@ -88,10 +83,10 @@ private ProductClient productClient;
 
     @Override
     public PageInfo<WeCharOrder> findList(Integer page, Integer limit) {
-        PageHelper.startPage(page,limit);
+        PageHelper.startPage(page, limit);
         List<WeCharOrder> findlist = weCharOrderMapper.findList();
-        System.out.println("=="+findlist);
-        PageInfo<WeCharOrder> pageInfoUserList =  new PageInfo<WeCharOrder>(findlist);
+        System.out.println("==" + findlist);
+        PageInfo<WeCharOrder> pageInfoUserList = new PageInfo<WeCharOrder>(findlist);
 
         return pageInfoUserList;
     }
@@ -106,26 +101,37 @@ private ProductClient productClient;
         //退款
         //查询订单
         WeCharOrder weCharOrder = weCharOrderMapper.finaAllByid(Integer.parseInt(orderId));
-        if(weCharOrder==null){
-            throw  new OrderException(ResultEnum.CART_EMPTY.ORDER_NOT_EXIST);
+        if (weCharOrder == null) {
+            throw new OrderException(ResultEnum.CART_EMPTY.ORDER_NOT_EXIST);
         }
         //判断订单转态
 
         if (!weCharOrder.getOrderstate().equals(OrderStatusEnum.DCANCEL.getCode())) {
-            throw  new OrderException(ResultEnum.ORDER_STATUS_ERROR);
+            throw new OrderException(ResultEnum.ORDER_STATUS_ERROR);
         }
         //修改订单状态
         weCharOrder.setOrderstate(OrderStatusEnum.CANCEL.getCode());
-
-        int count =   weCharOrderMapper.updateOrderStatus(weCharOrder);
-
-        System.out.println("++++++++++++++++++"+weCharOrder.getId());
+        int count = weCharOrderMapper.updateOrderStatus(weCharOrder);
         List<WeCharOrdeDetail> weCharOrdeDetails = weCharOrdeDetailMapper.findByOrderno(weCharOrder.getOrderno());
+
         List<DecreaseStockInput> decreaseStockInputList = weCharOrdeDetails.stream()
                 .map(e -> new DecreaseStockInput(e.getProductid(), e.getNum()))
                 .collect(Collectors.toList());
-        productClient.addStock(decreaseStockInputList);
+        System.out.println("===="+decreaseStockInputList+"-");
+        try{
+            productClient.addStock(decreaseStockInputList);
+        }catch (Exception ex){
+            weCharOrder.setOrderstate(OrderStatusEnum.DCANCEL.getCode());
+            weCharOrderMapper.updateOrderStatus(weCharOrder);
+            throw new OrderException(ResultEnum.ORDER_END);
+        }
+
         return count;
     }
+
+
+
+
+
 
 }
