@@ -25,9 +25,7 @@ public class OrderForm2OrderDTOConverter {
         orderDTO.setFullname(orderForm.getName());
         orderDTO.setMphone(orderForm.getPhone());
         orderDTO.setAddress(orderForm.getAddress());
-        orderDTO.setOpenid(orderForm.getOpenid());
-
-
+        orderDTO.setToken(orderForm.getToken());
         List<WeCharOrdeDetail> orderDetailList = new ArrayList<>();
         try {
             orderDetailList = gson.fromJson(orderForm.getItems(),

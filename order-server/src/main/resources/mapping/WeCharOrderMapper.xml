@@ -114,7 +114,7 @@
       GroupBuyingType, GroupBuyingDiscount, GroupBuyStatus,
       IsGroupBuying, ReceiptType, Deposit,
       ReturnNumber, MembershipConsumption, CouponPreferential,
-      DefaultFreight,openid)
+      DefaultFreight,Openid)
     values (#{enterpriseid,jdbcType=INTEGER}, #{userid,jdbcType=INTEGER},
       #{orderno,jdbcType=VARCHAR}, #{total,jdbcType=DECIMAL}, #{actualprice,jdbcType=DECIMAL},
       #{coupons,jdbcType=VARCHAR}, #{orderstate,jdbcType=INTEGER}, #{paystate,jdbcType=INTEGER},
@@ -153,14 +153,14 @@
   </select>
 
     <select id="BuyerfindList" parameterType="com.nsw.wx.order.pojo.WeCharOrder" resultMap="BaseResultMap">
-   select orderno,fullname,mphone,address,total,orderstate,paystate from tbWeCharOrder and openid = #{openid}
+   select orderno,fullname,mphone,address,total,orderstate,paystate from tbWeCharOrder and Openid = #{openid}
   </select>
 
     <select id="finaAllByid" parameterType="com.nsw.wx.order.pojo.WeCharOrder" resultMap="BaseResultMap">
    select * from tbWeCharOrder where id=#{id}
   </select>
     <select id="BuyerFinaAllByid" parameterType="com.nsw.wx.order.pojo.WeCharOrder" resultMap="BaseResultMap">
-   select * from tbWeCharOrder where id=#{orderId} and openid = #{openid}
+   select * from tbWeCharOrder where ID=#{orderId} and Openid = #{openid}
   </select>
 
     <delete id="deleteByPrimaryKey" parameterType="java.lang.String">

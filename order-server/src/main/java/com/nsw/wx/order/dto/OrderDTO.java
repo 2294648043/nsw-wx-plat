@@ -20,6 +20,7 @@ import java.util.List;
  */
 @Data
 public class OrderDTO  implements  Serializable  {
+    private String token;//(token，查询出redis中的openid)
 
     private Integer id; //ID
 

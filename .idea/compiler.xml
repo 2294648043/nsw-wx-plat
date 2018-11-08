@@ -11,13 +11,13 @@
         <module name="order-com.nsw.wx.order.common" />
         <module name="order-common" />
         <module name="order-server" />
-        <module name="product-client" />
-        <module name="product-common" />
-        <module name="product-server" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="nsw-wx-product" target="1.8" />
+      <module name="product-client" target="1.8" />
+      <module name="product-common" target="1.8" />
+      <module name="product-server" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

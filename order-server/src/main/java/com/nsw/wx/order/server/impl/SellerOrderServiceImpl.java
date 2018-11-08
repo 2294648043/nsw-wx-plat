@@ -132,4 +132,9 @@ public class SellerOrderServiceImpl implements SellerOrderService {
         return count;
     }
 
+    @Override
+    public List<WeCharOrdeDetail> selectoid(List<String> oid) {
+        return weCharOrdeDetailMapper.selectoid(oid);
+    }
+
 }

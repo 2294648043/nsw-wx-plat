@@ -21,6 +21,7 @@ import com.nsw.wx.order.server.WebSocket;
 import com.nsw.wx.order.util.KeyUtil;
 import com.nsw.wx.order.common.DecreaseStockInput;
 import com.nsw.wx.order.common.WeChatProductOutput;
+import com.sun.imageio.plugins.common.I18N;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,6 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
     private AmqpTemplate amqpTemplate;
     @Transactional
     public  OrderDTO create(OrderDTO orderDTO) {
-
         String  orderId = KeyUtil.genUniqueKey();
         List<WeChatProductOutput> productInfoList = new ArrayList<>();
         //得到商品的ID
@@ -73,9 +73,11 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
             redisService.set(WeChatProductOutputKey.getById, "" + weChatProductOutput.getId(), weChatProductOutput);
             productInfoList.add(weChatProductOutput);
         }
+        System.out.println("productInfoList"+productInfoList);
+        System.out.println("orderDTO.getOrderDetailList()"+orderDTO.getOrderDetailList());
         BigDecimal orderAmout = new BigDecimal(BigInteger.ZERO);
         BigDecimal orderAmoutSum = new BigDecimal(BigInteger.ZERO);
-         //订单商品入库
+        //订单商品入库
         for (WeCharOrdeDetail weCharOrdeDetail: orderDTO.getOrderDetailList()) {
             for (WeChatProductOutput productInfo: productInfoList) {
                 if (productInfo.getId().equals(weCharOrdeDetail.getProductid())) {
@@ -83,8 +85,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                     orderAmout = productInfo.getPrice()
                             .multiply(new BigDecimal(weCharOrdeDetail.getNum()));
                     weCharOrdeDetail.setUserprice(orderAmout);
-
-                    BeanUtils.copyProperties(productInfo, weCharOrdeDetail);
+                    BeanUtils.copyProperties(productInfo,weCharOrdeDetail);
                     weCharOrdeDetail.setOid(orderId);
                     weCharOrdeDetail.setProductname(productInfo.getTitle());
                     weCharOrdeDetail.setProductprice(productInfo.getPrice());
@@ -93,7 +94,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                     weCharOrdeDetail.setInputtime(new Date());
                     weCharOrdeDetail.setCarttype(null);
                     weCharOrdeDetail.setSkuid(12);
-                    BigDecimal aDouble =new BigDecimal(198);
+                    BigDecimal aDouble = new BigDecimal(198);
                     weCharOrdeDetail.setGroupbuyprice(aDouble);
                     weCharOrdeDetail.setOffertype(1);
                     weCharOrdeDetail.setDeposit(aDouble);
@@ -101,29 +102,29 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
                     weCharOrdeDetail.setDay(320);
                     weCharOrdeDetail.setStatus(OrderStatusEnum.DFINISHED.getCode());
                     weCharOrdeDetail.setUserid(12);
-                    orderAmoutSum =  orderAmoutSum.add(orderAmout);
+                    orderAmoutSum = orderAmoutSum.add(orderAmout);
                     //订单详情入库
                     try {
-                        int count =  weCharOrdeDetailMapper.insert(weCharOrdeDetail);
-                    }catch (Exception ex){
+                        int count = weCharOrdeDetailMapper.insert(weCharOrdeDetail);
+                    } catch (Exception ex) {
 
                     }
                 }
             }
         }
-
         //订单入库
         WeCharOrder orderMaster = new WeCharOrder();
         orderDTO.setOrderno(orderId);
+        String openid=redisService.get(orderDTO.getToken());//用户openid
+        orderDTO.setOpenid(openid);
         BeanUtils.copyProperties(orderDTO, orderMaster);
-        System.out.println(orderDTO.getOpenid()+"=========="+orderMaster.getOpenid());
         orderMaster.setInvoicetime(new Date());
         orderMaster.setOrderstate(OrderStatusEnum.DFINISHED.getCode());
         orderMaster.setOrderno(orderId);
         orderMaster.setTotal(orderAmoutSum);
-        weCharOrderMapper.insert(orderMaster);
+        int count=weCharOrderMapper.insert(orderMaster);
+
         DecreaseStockInputReceiver decreaseStockInputReceiver = new DecreaseStockInputReceiver();
-        //扣库存(调用商品服务)
         List<DecreaseStockInput> decreaseStockInputList = orderDTO.getOrderDetailList().stream()
                 .map(e -> new DecreaseStockInput(e.getProductid(), e.getNum()))
                 .collect(Collectors.toList());
@@ -135,7 +136,16 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
             ex.printStackTrace();
             throw new OrderException(ResultEnum.PEODUCT_STOCK_EMPTY);
         }
-
+        if (count>0){
+            for (WeCharOrdeDetail weCharOrdeDetail: orderDTO.getOrderDetailList()) {
+                for (WeChatProductOutput productInfo: productInfoList) {
+                    if (productInfo.getId().equals(weCharOrdeDetail.getProductid())) {
+                        productClient.cartproductid(Integer.parseInt(weCharOrdeDetail.getProductid()));
+                        System.out.println("++++++++：："+weCharOrdeDetail.getProductid());
+                    }
+                }
+            }
+        }
         return orderDTO;
     }
 
@@ -182,12 +192,10 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
      */
     @Override
     public OrderDTO cancel(String orderId,String openid) {
-        System.out.println(orderId+"-------"+openid);
         WeCharOrder weCharOrder = weCharOrderMapper.BuyerFinaAllByid(Integer.parseInt(orderId),openid);
         if(weCharOrder==null){
             throw  new OrderException(ResultEnum.CART_EMPTY.ORDER_NOT_EXIST);
         }
-
         weCharOrder.setOrderstate(OrderStatusEnum.DCANCEL.getCode());
         weCharOrderMapper.updateByPrimary(weCharOrder);
         WeCharOrdeDetail weCharOrdeDetail=new WeCharOrdeDetail();
@@ -198,7 +206,7 @@ public class BuyerOrderServiceImpl implements BuyerOrderService {
         return orderDTO;
     }
     @Override
-    public List<WeCharOrder> orderdetailuserid(int openid) {
+    public List<WeCharOrder> orderdetailuserid(String openid) {
         return weCharOrderMapper.orderdetailuserid(openid);
     }
 

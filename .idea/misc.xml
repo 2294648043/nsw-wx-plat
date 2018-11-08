@@ -14,6 +14,9 @@
     <option name="ignoredFiles">
       <set>
         <option value="F:/idea/file/xmxxx/nsw-wx-product/pom.xml" />
+        <option value="F:/idea/file/xmxxx/nsw-wx-product/product-client/pom.xml" />
+        <option value="F:/idea/file/xmxxx/nsw-wx-product/product-common/pom.xml" />
+        <option value="F:/idea/file/xmxxx/nsw-wx-product/product-server/pom.xml" />
       </set>
     </option>
   </component>

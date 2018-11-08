@@ -11,6 +11,7 @@ import com.nsw.wx.order.exception.OrderException;
 import com.nsw.wx.order.form.OrderForm;
 import com.nsw.wx.order.pojo.WeCharOrdeDetail;
 import com.nsw.wx.order.pojo.WeCharOrder;
+import com.nsw.wx.order.redis.RedisService;
 import com.nsw.wx.order.server.BuyerOrderService;
 import com.nsw.wx.order.VO.ResultVOUtil;
 import com.nsw.wx.order.server.SellerOrderService;
@@ -46,6 +47,16 @@ public class BuyerOrderController {
 
     @Autowired
     private SellerOrderService orderService;
+
+    @Autowired
+    private RedisService redisService;
+    /**
+     * 1. 参数检验
+     * 2. 查询商品信息(调用商品服务)
+     * 3. 计算总价
+     * 4. 扣库存(调用商品服务)
+     * 5. 订单入库
+     */
     /**
      * 1. 参数检验
      * 2. 查询商品信息(调用商品服务)
@@ -54,16 +65,17 @@ public class BuyerOrderController {
      * 5. 订单入库
      */
     @PostMapping("/create")
-    // @HystrixCommand(fallbackMethod = "saveOrderFail")
     public ResultVO<Map<String, String>> create(@Valid OrderForm orderForm,
-                                                BindingResult bindingResult) {
+                                                BindingResult bindingResult,
+                                                HttpServletResponse response, HttpServletRequest request){
+        //response.setHeader("Access-Control-Allow-Origin", "*");
+        System.out.println("orderForm"+orderForm+request.getParameter("name"));
         if (bindingResult.hasErrors()) {
             log.error("【创建订单】参数不正确, orderForm={}", orderForm);
             throw new OrderException(ResultEnum.PARAM_ERROR.getCode(),
                     bindingResult.getFieldError().getDefaultMessage());
         }
         OrderDTO orderDTO = OrderForm2OrderDTOConverter.convert(orderForm);
-
         if (CollectionUtils.isEmpty(orderDTO.getOrderDetailList())) {
             log.error("【创建订单】购物车信息为空");
             throw new OrderException(ResultEnum.CART_EMPTY);
@@ -103,9 +115,11 @@ public class BuyerOrderController {
     }
     //取消订单
     @PostMapping("/cancel")
-    public ResultVO cancel(@RequestParam("openid") String openid,
-                           @RequestParam("orderId") String orderId) {
-       buyerOrderService.cancel(orderId,openid);
+    public ResultVO cancel(@RequestParam("token") String token,
+                           @RequestParam("orderId") String orderId,HttpServletResponse response) {
+        //response.setHeader("Access-Control-Allow-Origin", "*");
+        String openid=redisService.get(token);
+        buyerOrderService.cancel(orderId,openid);
         return ResultVOUtil.success();
     }
 
@@ -113,14 +127,16 @@ public class BuyerOrderController {
      * 根据用户id和订单状态查询订
      * 单编号再根据编号查询订单详情
      * @param response
-     * @param openid
+     * @param
      * @param
      * @return
      */
     @RequestMapping("orderdetailuserid")
     public Object orderdetailuserid(HttpServletResponse response,
-                                    @RequestParam("openid") int openid) {
-        response.setHeader("Access-Control-Allow-Origin", "*");
+                                    @RequestParam("token") String token) {
+        //response.setHeader("Access-Control-Allow-Origin", "*");
+        String openid=redisService.get(token);
+        System.out.println(token);
         List<WeCharOrder> weCharOrder = buyerOrderService.orderdetailuserid(openid);
         //2. 获取weCharOrder的订单编号
         List<String> categoryOIDList = weCharOrder.stream()
@@ -157,7 +173,6 @@ public class BuyerOrderController {
             weCharOrder1.setWeCharOrdeDetailVOS(weCharOrdeDetailX);
             weCharOrderList.add(weCharOrder1);
         }
-        System.out.println("+++++++++++++++++++++++++++"+weCharOrderList);
         return weCharOrderList;
     }
 

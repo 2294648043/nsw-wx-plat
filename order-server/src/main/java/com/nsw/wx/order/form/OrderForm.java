@@ -29,10 +29,10 @@ public class OrderForm {
     private String address;
 
     /**
-     * 买家微信openid
+     * 买家微信(token)openid
      */
     @NotEmpty(message = "openid必填")
-    private String openid;
+    private String token;
 
     /**
      * 购物车

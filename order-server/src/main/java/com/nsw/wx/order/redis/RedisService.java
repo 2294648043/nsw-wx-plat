@@ -1,17 +1,15 @@
 package com.nsw.wx.order.redis;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.alibaba.fastjson.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.alibaba.fastjson.JSON;
-
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class RedisService {
@@ -22,11 +20,12 @@ public class RedisService {
 	/**
 	 * 获取当个对象
 	 * */
-	public <T> T get(KeyPrefix prefix, String key,  Class<T> clazz) {
+	public <T> T get(KeyPrefix prefix, String key, Class<T> clazz) {
 		 Jedis jedis = null;
 		 try {
 			 jedis =  jedisPool.getResource();
 			 //生成真正的key
+			 System.out.println();
 			 String realKey  = prefix.getPrefix() + key;
 			 String  str = jedis.get(realKey);
 			 T t =  stringToBean(str, clazz);
@@ -36,14 +35,28 @@ public class RedisService {
 		 }
 	}
 
-	public <T> String get(KeyPrefix prefix, String key) {
+	public <T> String get( String key) {
+		Jedis jedis = null;
+		try {
+			jedis =  jedisPool.getResource();
+			//生成真正的key
+			String realKey  =  key;
+			String  str = jedis.get(realKey);
+
+			return str;
+		}finally {
+			returnToPool(jedis);
+		}
+	}
+
+	public String get(KeyPrefix prefix, String key) {
 		Jedis jedis = null;
 		try {
 			jedis =  jedisPool.getResource();
 			//生成真正的key
 			String realKey  = prefix.getPrefix() + key;
 			String  str = jedis.get(realKey);
-
+			System.out.println();
 			return str;
 		}finally {
 			returnToPool(jedis);
@@ -74,7 +87,22 @@ public class RedisService {
 			  returnToPool(jedis);
 		 }
 	}
-	
+    public <T> boolean set(String key,  String value) {
+        Jedis jedis = null;
+        try {
+            jedis =  jedisPool.getResource();
+            String str = beanToString(value);
+            if(str == null || str.length() <= 0) {
+                return false;
+            }
+            //生成真正的key
+            String realKey  =  key;
+            jedis.set(realKey, str);
+            return true;
+        }finally {
+            returnToPool(jedis);
+        }
+    }
 	/**
 	 * 判断key是否存在
 	 * */

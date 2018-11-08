@@ -68,5 +68,5 @@ public interface WeCharOrderMapper {
      * @param openid
      * @return
      */
-    List<WeCharOrder> orderdetailuserid(@Param("openid") int openid);
+    List<WeCharOrder> orderdetailuserid(@Param("openid") String openid);
 }
